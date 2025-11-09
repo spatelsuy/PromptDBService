@@ -7,8 +7,6 @@ dotenv.config();
 const router = express.Router();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-
-// Add this to your backend
 router.get('/getCategories', async (req, res) => {
   try {
     const { data: categories, error } = await supabase
@@ -19,7 +17,10 @@ router.get('/getCategories', async (req, res) => {
       .not('category', 'eq', '')
       .order('category', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching categories:', error);
+      return res.status(500).json({ error: error.message });
+    }
 
     // Get unique categories
     const uniqueCategories = [...new Set(categories.map(item => item.category))];
@@ -28,6 +29,80 @@ router.get('/getCategories', async (req, res) => {
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+
+router.get('/getPromptsByCategory/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    // Step 1: Get all active prompts with category filter
+    let query = supabase
+      .from("prompt_master")
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    // Add category filter only if it's not 'all'
+    if (category !== 'all') {
+      query = query.eq('category', category);
+    }
+
+    const { data: prompts, error: promptsError } = await query;
+
+    if (promptsError) {
+      console.error('Error fetching prompts:', promptsError);
+      return res.status(500).json({ error: promptsError.message });
+    }
+
+    // Step 2: Get active versions for these prompts
+    const activeVersionIds = prompts
+      .map(p => p.active_version_id)
+      .filter(id => id !== null); // Only get versions that exist
+
+    let versions = [];
+    if (activeVersionIds.length > 0) {
+      const { data: versionsData, error: versionsError } = await supabase
+        .from("prompt_versions")
+        .select('*')
+        .in('version_id', activeVersionIds);
+
+      if (versionsError) {
+        console.error('❌ Error fetching versions:', versionsError);
+        return res.status(500).json({ error: versionsError.message });
+      }
+      versions = versionsData;
+    }
+
+    // Step 3: Combine the data
+    const combinedData = prompts.map(prompt => {
+      const activeVersion = versions.find(v => v.version_id === prompt.active_version_id);
+      
+      return {
+        prompt_id: prompt.prompt_id,
+        title: prompt.title,
+        category: prompt.category,
+        description: prompt.description,
+        created_at: prompt.created_at,
+        updated_at: prompt.updated_at,
+        active_version_id: prompt.active_version_id,
+        // Version data if available
+        version_id: activeVersion?.version_id || null,
+        version_number: activeVersion?.version_number || null,
+        prompt_text: activeVersion?.prompt_text || null,
+        metadata: activeVersion?.metadata || null,
+        created_by: activeVersion?.created_by || null,
+        version_created_at: activeVersion?.created_at || null
+      };
+    });
+
+    //console.log('COMBINED DATA BY CATEGORY:', combinedData);
+    res.json(combinedData);
+
+  } catch (error) {
+    console.error('Error fetching prompts by category:', error);
+    res.status(500).json({ error: 'Failed to fetch prompts by category' });
   }
 });
 
@@ -404,6 +479,7 @@ function generatePromptId(title) {
   return uniqueId;
 }
 export default router;
+
 
 
 
