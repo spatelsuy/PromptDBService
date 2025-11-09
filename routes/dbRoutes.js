@@ -47,6 +47,7 @@ router.get('/getPrompts', async (req, res) => {
       return {
         prompt_id: prompt.prompt_id,
         title: prompt.title,
+		category: prompt.category,
         description: prompt.description,
         created_at: prompt.created_at,
         updated_at: prompt.updated_at,
@@ -378,3 +379,4 @@ function generatePromptId(title) {
   return uniqueId;
 }
 export default router;
+
