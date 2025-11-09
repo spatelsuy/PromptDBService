@@ -9,7 +9,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 
 
 // Add this to your backend
-app.get('/api/db/getCategories', async (req, res) => {
+router.get('/getCategories', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT DISTINCT category 
@@ -397,5 +397,6 @@ function generatePromptId(title) {
   return uniqueId;
 }
 export default router;
+
 
 
