@@ -214,6 +214,7 @@ router.post('/saveNewPrompt', async (req, res) => {
       .insert([
         { 
           prompt_id: promptId,
+		  category: category,
           title: title,
           description: description || null,
           parent_id: null, // This is the first version, so no parent
@@ -377,6 +378,7 @@ function generatePromptId(title) {
 
   return uniqueId;
 }
+
 
 
 export default router;
