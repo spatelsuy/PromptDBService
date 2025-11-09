@@ -7,6 +7,24 @@ dotenv.config();
 const router = express.Router();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
+
+// Add this to your backend
+app.get('/api/db/getCategories', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT category 
+      FROM prompt_master 
+      WHERE category IS NOT NULL AND category != ''
+      ORDER BY category
+    `);
+    res.json(result.rows.map(row => row.category));
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+
 router.get('/getPrompts', async (req, res) => {
   try {
     // Step 1: Get all active prompts
@@ -379,4 +397,5 @@ function generatePromptId(title) {
   return uniqueId;
 }
 export default router;
+
 
