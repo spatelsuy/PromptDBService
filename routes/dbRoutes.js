@@ -11,13 +11,20 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 // Add this to your backend
 router.get('/getCategories', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT DISTINCT category 
-      FROM prompt_master 
-      WHERE category IS NOT NULL AND category != ''
-      ORDER BY category
-    `);
-    res.json(result.rows.map(row => row.category));
+    const { data: categories, error } = await supabase
+      .from('prompt_master')
+      .select('category')
+      .eq('is_active', true)
+      .not('category', 'is', null)
+      .not('category', 'eq', '')
+      .order('category', { ascending: true });
+
+    if (error) throw error;
+
+    // Get unique categories
+    const uniqueCategories = [...new Set(categories.map(item => item.category))];
+    
+    res.json(uniqueCategories);
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
@@ -397,6 +404,7 @@ function generatePromptId(title) {
   return uniqueId;
 }
 export default router;
+
 
 
 
