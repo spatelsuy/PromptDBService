@@ -193,9 +193,9 @@ router.post('/saveNewPrompt', async (req, res) => {
   let versionId = null;
 
   try {
-    const { title, content, description, created_by, metadata } = req.body;
+    const { title, content, description, created_by, metadata, category } = req.body;
 
-    console.log('Saving new prompt with versioning:', { title, content, description });
+    console.log('Saving new prompt with versioning:', { title, content, description, category });
 
     // Validate required fields
     if (!title || !content) {
@@ -382,3 +382,4 @@ function generatePromptId(title) {
 
 
 export default router;
+
