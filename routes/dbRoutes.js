@@ -32,6 +32,37 @@ router.get('/getCategories', async (req, res) => {
   }
 });
 
+// GET /api/ai/providers - Get all active providers
+router.get('/getProviders', async (req, res) => {
+  try {
+    const { data: providers, error } = await supabase
+      .from('ai_providers')
+      .select('*')
+      .eq('is_active', true)
+      .order('priority', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({
+      success: true,
+      providers: providers
+    });
+
+  } catch (error) {
+    console.error('Error fetching providers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch providers'
+    });
+  }
+});
+
+
+
+
+
 
 router.get('/getPromptsByCategory/:category', async (req, res) => {
   try {
@@ -479,6 +510,7 @@ function generatePromptId(title) {
   return uniqueId;
 }
 export default router;
+
 
 
 
