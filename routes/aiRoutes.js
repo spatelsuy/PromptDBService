@@ -29,7 +29,7 @@ router.post('/test-with-multiple-providers', async (req, res) => {
     }
 
     // Get provider details from database
-    const providerResponse = await fetch('https://promptdbservice.onrender.com//api/db/getSelectedProviders', {
+    const providerResponse = await fetch('https://promptdbservice.onrender.com/api/db/getSelectedProviders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -541,3 +541,4 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
