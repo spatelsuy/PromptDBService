@@ -266,7 +266,7 @@ router.post('/saveNewPrompt', async (req, res) => {
   let versionId = null;
 
   try {
-    const { title, content, description, created_by, metadata } = req.body;
+    const { category, title, content, description, created_by, metadata } = req.body;
 
     console.log('Saving new prompt with versioning:', { title, content, description });
 
@@ -454,3 +454,4 @@ function generatePromptId(title) {
 
 
 export default router;
+
