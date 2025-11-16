@@ -7,33 +7,16 @@ dotenv.config();
 const router = express.Router();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-router.get('/getCategories', async (req, res) => {
-  try {
-    const { data: categories, error } = await supabase
-      .from('prompt_master')
-      .select('category')
-      .eq('is_active', true)
-      .not('category', 'is', null)
-      .not('category', 'eq', '')
-      .order('category', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching categories:', error);
-      return res.status(500).json({ error: error.message });
-    }
 
-    // Get unique categories
-    const uniqueCategories = [...new Set(categories.map(item => item.category))];
-    
-    res.json(uniqueCategories);
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Failed to fetch categories' });
-  }
+// Add this to your backend
+router.get('/api/db/getCategories', async (req, res) => {
+
 });
 
+
 // GET /api/ai/providers - Get all active providers
-router.get('/getProviders', async (req, res) => {
+router.get('/getAllProviders', async (req, res) => {
   try {
     const { data: providers, error } = await supabase
       .from('ai_providers')
@@ -60,80 +43,38 @@ router.get('/getProviders', async (req, res) => {
 });
 
 
-
-
-
-
-router.get('/getPromptsByCategory/:category', async (req, res) => {
+// GET /api/db/getProviders - Get AI providers by IDs
+router.post('/getSelectedProviders', async (req, res) => {
   try {
-    const { category } = req.params;
+    const { providerIds } = req.body;
 
-    // Step 1: Get all active prompts with category filter
-    let query = supabase
-      .from("prompt_master")
+    if (!providerIds || !Array.isArray(providerIds)) {
+      return res.status(400).json({
+        success: false,
+        error: 'providerIds array is required'
+      });
+    }
+    const { data: providers, error } = await supabase
+      .from('ai_providers')
       .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .in('id', providerIds)
+      .eq('is_active', true);
 
-    // Add category filter only if it's not 'all'
-    if (category !== 'all') {
-      query = query.eq('category', category);
+    if (error) {
+      throw error;
     }
 
-    const { data: prompts, error: promptsError } = await query;
-
-    if (promptsError) {
-      console.error('Error fetching prompts:', promptsError);
-      return res.status(500).json({ error: promptsError.message });
-    }
-
-    // Step 2: Get active versions for these prompts
-    const activeVersionIds = prompts
-      .map(p => p.active_version_id)
-      .filter(id => id !== null); // Only get versions that exist
-
-    let versions = [];
-    if (activeVersionIds.length > 0) {
-      const { data: versionsData, error: versionsError } = await supabase
-        .from("prompt_versions")
-        .select('*')
-        .in('version_id', activeVersionIds);
-
-      if (versionsError) {
-        console.error('❌ Error fetching versions:', versionsError);
-        return res.status(500).json({ error: versionsError.message });
-      }
-      versions = versionsData;
-    }
-
-    // Step 3: Combine the data
-    const combinedData = prompts.map(prompt => {
-      const activeVersion = versions.find(v => v.version_id === prompt.active_version_id);
-      
-      return {
-        prompt_id: prompt.prompt_id,
-        title: prompt.title,
-        category: prompt.category,
-        description: prompt.description,
-        created_at: prompt.created_at,
-        updated_at: prompt.updated_at,
-        active_version_id: prompt.active_version_id,
-        // Version data if available
-        version_id: activeVersion?.version_id || null,
-        version_number: activeVersion?.version_number || null,
-        prompt_text: activeVersion?.prompt_text || null,
-        metadata: activeVersion?.metadata || null,
-        created_by: activeVersion?.created_by || null,
-        version_created_at: activeVersion?.created_at || null
-      };
+    res.json({
+      success: true,
+      providers: providers || []
     });
 
-    //console.log('COMBINED DATA BY CATEGORY:', combinedData);
-    res.json(combinedData);
-
   } catch (error) {
-    console.error('Error fetching prompts by category:', error);
-    res.status(500).json({ error: 'Failed to fetch prompts by category' });
+    console.error('Error fetching providers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch providers'
+    });
   }
 });
 
@@ -148,7 +89,7 @@ router.get('/getPrompts', async (req, res) => {
       .order('created_at', { ascending: false });
 
     if (promptsError) {
-      console.error('Error fetching prompts:', promptsError);
+      console.error('❌ Error fetching prompts:', promptsError);
       return res.status(500).json({ error: promptsError.message });
     }
 
@@ -193,11 +134,11 @@ router.get('/getPrompts', async (req, res) => {
       };
     });
 
-    //console.log('COMBINED DATA:', combinedData);
+    console.log('COMBINED DATA:', combinedData);
     res.json(combinedData);
 
   } catch (error) {
-    console.error('Error fetching prompts:', error);
+    console.error('❌ Error fetching prompts:', error);
     res.status(500).json({ error: 'Failed to fetch prompts' });
   }
 });
@@ -301,8 +242,8 @@ router.put('/updatePrompt/:prompt_id', async (req, res) => {
 
     if (updateError) throw updateError;
 
-    //console.log('New version created successfully:', { prompt_id, version: nextVersion });
-	//console.log('New version created successfully:', updatedPrompt[0], updatedPrompt[0].active_version_id[0]);
+    console.log('✅ New version created successfully:', { prompt_id, version: nextVersion });
+	console.log('✅ New version created successfully:', updatedPrompt[0], updatedPrompt[0].active_version_id[0]);
 
     res.json({
       message: 'New version created successfully',
@@ -313,7 +254,7 @@ router.put('/updatePrompt/:prompt_id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error creating new version:', error);
+    console.error('❌ Error creating new version:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -325,9 +266,9 @@ router.post('/saveNewPrompt', async (req, res) => {
   let versionId = null;
 
   try {
-    const { title, content, description, created_by, metadata, category } = req.body;
+    const { title, content, description, created_by, metadata } = req.body;
 
-    console.log('Saving new prompt with versioning:', { title, content, description, category });
+    console.log('Saving new prompt with versioning:', { title, content, description });
 
     // Validate required fields
     if (!title || !content) {
@@ -418,7 +359,7 @@ router.post('/saveNewPrompt', async (req, res) => {
       return res.status(500).json({ error: updateError.message });
     }
 
-    //console.log('New prompt saved successfully. Prompt ID:', promptId, 'Version ID:', versionId);
+    console.log('New prompt saved successfully. Prompt ID:', promptId, 'Version ID:', versionId);
     
     // Get the final combined data
     const { data: finalPromptData, error: finalError } = await supabase
@@ -431,7 +372,7 @@ router.post('/saveNewPrompt', async (req, res) => {
       .single();
 
     if (finalError) {
-      console.error('Error fetching final prompt data:', finalError);
+      console.error('❌ Error fetching final prompt data:', finalError);
     }
 
     res.status(201).json({ 
@@ -444,7 +385,7 @@ router.post('/saveNewPrompt', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error saving new prompt:', error);
+    console.error('❌ Error saving new prompt:', error);
     
     // Comprehensive cleanup in case of unexpected errors
     if (versionId) {
@@ -507,12 +448,9 @@ function generatePromptId(title) {
     const truncatedBase = baseId.substring(0, Math.max(10, maxBaseLength)); // Keep at least 10 chars
     return `${truncatedBase}_${timestamp}_${randomStr}`;
   }
+
   return uniqueId;
 }
+
+
 export default router;
-
-
-
-
-
-
