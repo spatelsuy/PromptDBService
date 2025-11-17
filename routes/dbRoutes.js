@@ -7,11 +7,23 @@ dotenv.config();
 const router = express.Router();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
+router.get('/getCategories', async (req, res) => {
+  try {
+	  const { data: categories, error } = await supabase
+      .from('category')
+      .select('*');
 
-
-// Add this to your backend
-router.get('/api/db/getCategories', async (req, res) => {
-
+    if (error) {
+      throw error;
+    }
+    res.json({success: true, categories: categories});
+  } catch (error) {
+    console.error('Error fetching providers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch providers'
+    });
+  }
 });
 
 
@@ -454,4 +466,5 @@ function generatePromptId(title) {
 
 
 export default router;
+
 
