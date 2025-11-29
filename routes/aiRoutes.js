@@ -19,6 +19,7 @@ router.get('/test', (req, res) => {
 router.post("/saveSettings", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
+	console.log('READ header');
     if (!authHeader) {
       return res.status(401).json({ error: "Missing Authorization header" });
     }
@@ -577,6 +578,7 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
 
 
 
