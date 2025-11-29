@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from "cors";
 import dotenv from "dotenv";
-import OAuth2Client from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 const router = express.Router();
@@ -577,6 +577,7 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
 
 
 
