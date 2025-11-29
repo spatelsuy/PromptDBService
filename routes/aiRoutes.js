@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from "cors";
 import dotenv from "dotenv";
+import OAuth2Client from "google-auth-library";
 
 dotenv.config();
 const router = express.Router();
-const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Test route to verify aiRoutes is working
@@ -577,5 +577,6 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
 
 
