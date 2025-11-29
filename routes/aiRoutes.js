@@ -40,6 +40,8 @@ router.post("/saveSettings", async (req, res) => {
 	console.log('5 payload = ' + payload);
     const userId = payload.sub; // Google unique user ID
 	console.log('6 userId = ' + userId);
+	const emailId = payload.email;
+	console.log('66 emailId = ' + emailId);
 
     // Validate request body
     const { apiUrl } = req.body;
@@ -583,6 +585,7 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
 
 
 
