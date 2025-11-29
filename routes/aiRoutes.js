@@ -4,7 +4,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 const router = express.Router();
-
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Test route to verify aiRoutes is working
 router.get('/test', (req, res) => {
@@ -15,6 +16,41 @@ router.get('/test', (req, res) => {
   });
 });
 
+router.post("/saveSettings", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: "Missing Authorization header" });
+    }
+
+    const idToken = authHeader.split(" ")[1];
+    if (!idToken) {
+      return res.status(401).json({ error: "Invalid Authorization header format" });
+    }
+
+    // Verify Google ID Token
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const userId = payload.sub; // Google unique user ID
+
+    // Validate request body
+    const { apiUrl } = req.body;
+    if (!apiUrl) {
+      return res.status(400).json({ error: "apiUrl is required" });
+    }
+
+    // TODO — Save API URL for this user in your database  
+    // Example (you implement saveApiUrlForUser)
+    return res.json({ success: true, message: "API URL saved successfully" });
+  } catch (err) {
+    console.error("Error saving settings:", err);
+    return res.status(500).json({ error: "Internal server error", details: err.message });
+  }
+});
 
 // POST /api/ai/test-with-multiple-providers - Real implementation starting with Groq
 router.post('/test-with-multiple-providers', async (req, res) => {
@@ -541,4 +577,5 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
 
