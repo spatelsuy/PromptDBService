@@ -18,7 +18,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS — secure allowed origins
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000").split(",").map(o => o.trim());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhosts:3000").split(",").map(o => o.trim());
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -52,6 +52,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log("Allowed origins:", allowedOrigins);
 });
+
 
 
 
