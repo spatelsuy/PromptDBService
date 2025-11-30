@@ -7,7 +7,7 @@ import rateLimit from "express-rate-limit";
 dotenv.config();
 const app = express();
 app.use(helmet()); // Helmet for secure headers
-
+app.set("trust proxy", 1);
 // Rate limiter (basic protection)
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -52,6 +52,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log("Allowed origins:", allowedOrigins);
 });
+
 
 
 
