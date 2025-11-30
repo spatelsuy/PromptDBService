@@ -3,6 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { OAuth2Client } from "google-auth-library";
 
+
+import express from 'express';
+import { verifyGoogleToken } from '../middleware/auth.js';
+const router = express.Router();
+
+
 dotenv.config();
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -16,41 +22,11 @@ router.get('/test', (req, res) => {
   });
 });
 
-router.post("/saveSettings", async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: "Missing Authorization header" });
-    }
-    const idToken = authHeader.split(" ")[1];
-    if (!idToken) {
-      return res.status(401).json({ error: "Invalid Authorization header format" });
-    }
-
-    // Verify Google ID Token
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    const userId = payload.sub; // Google unique user ID
-	const emailId = payload.email;
-
-    // Validate request body
-    const { apiUrl } = req.body;
-	console.log('7 apiUrl = ' + apiUrl);
-	
-    if (!apiUrl) {
-      return res.status(400).json({ error: "apiUrl is required" });
-    }
-
-    // TODO — Save API URL for this user in your database  
-    // Example (you implement saveApiUrlForUser)
-    return res.json({ success: true, message: "API URL saved successfully" });
-  } catch (err) {
-    console.error("Error saving settings:", err);
-    return res.status(500).json({ error: "Internal server error", details: err.message });
-  }
+router.post("/saveSettings", verifyGoogleToken, async (req, res) => {
+  const { apiUrl } = req.body;
+  console.log("User ID:", req.user.id);
+  // Save apiUrl for this user
+  res.json({ success: true, message: "API URL saved" });
 });
 
 // POST /api/ai/test-with-multiple-providers - Real implementation starting with Groq
@@ -578,6 +554,7 @@ Return only the formatted prompt without any additional explanations.`;
 });
 
 export default router;
+
 
 
 
