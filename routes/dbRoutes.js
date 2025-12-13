@@ -326,7 +326,7 @@ router.post('/saveNewPrompt', verifyGoogleToken, async (req, res) => {
           version_number: 1,
           prompt_text: content,
           metadata: metadata || {},
-          created_by: req.user.id || 'system',
+          created_by: req.user.email || 'system',
           is_published: true
         }
       ])
@@ -465,4 +465,5 @@ function generatePromptId(title) {
 }
 
 export default router;
+
 
