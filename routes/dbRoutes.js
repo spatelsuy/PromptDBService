@@ -2,6 +2,7 @@ import express from 'express';
 import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+import { verifyGoogleToken } from '../middleware/auth.js';
 
 dotenv.config();
 const router = express.Router();
@@ -273,7 +274,7 @@ router.put('/updatePrompt/:prompt_id', async (req, res) => {
 
 
 // POST /api/db/saveNewPrompt - Save a new prompt with versioning
-router.post('/saveNewPrompt', async (req, res) => {
+router.post('/saveNewPrompt', verifyGoogleToken, async (req, res) => {
   let promptId = null;
   let versionId = null;
 
@@ -460,11 +461,7 @@ function generatePromptId(title) {
     const truncatedBase = baseId.substring(0, Math.max(10, maxBaseLength)); // Keep at least 10 chars
     return `${truncatedBase}_${timestamp}_${randomStr}`;
   }
-
   return uniqueId;
 }
 
-
 export default router;
-
-
