@@ -57,7 +57,7 @@ router.get('/getAllProviders', async (req, res) => {
 
 
 // GET /api/db/getProviders - Get AI providers by IDs
-router.post('/getSelectedProviders', async (req, res) => {
+router.post('/getSelectedProviders', verifyGoogleToken, async (req, res) => {
   try {
     const { providerIds } = req.body;
 
@@ -179,7 +179,7 @@ router.get('/getPromptVersions/:prompt_id', async (req, res) => {
 
 
 // PUT /api/db/setActiveVersion
-router.put('/setActiveVersion', async (req, res) => {
+router.put('/setActiveVersion', verifyGoogleToken, async (req, res) => {
   try {
     const { prompt_id, version_id } = req.body;
 
@@ -203,7 +203,7 @@ router.put('/setActiveVersion', async (req, res) => {
 
 
 // PUT /api/db/updatePrompt/:prompt_id - Create new version and update active_version_id
-router.put('/updatePrompt/:prompt_id', async (req, res) => {
+router.put('/updatePrompt/:prompt_id', verifyGoogleToken, async (req, res) => {
   try {
     const { prompt_id } = req.params;
     const { prompt_text, title, description, created_by, metadata } = req.body;
@@ -232,7 +232,7 @@ router.put('/updatePrompt/:prompt_id', async (req, res) => {
           version_number: nextVersion,
           prompt_text: prompt_text,
           metadata: metadata || {},
-          created_by: created_by || 'system',
+          created_by: req.user.email || 'system',
           is_published: true
         }
       ])
@@ -465,5 +465,6 @@ function generatePromptId(title) {
 }
 
 export default router;
+
 
 
