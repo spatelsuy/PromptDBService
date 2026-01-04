@@ -147,7 +147,7 @@ router.get('/getPrompts', async (req, res) => {
       };
     });
 
-    console.log('COMBINED DATA:', combinedData);
+    //console.log('COMBINED DATA:', combinedData);
     res.json(combinedData);
 
   } catch (error) {
@@ -208,7 +208,7 @@ router.put('/updatePrompt/:prompt_id', verifyGoogleToken, async (req, res) => {
     const { prompt_id } = req.params;
     const { prompt_text, title, description, created_by, metadata } = req.body;
 
-    console.log('Creating new version for prompt:', prompt_id);
+    //console.log('Creating new version for prompt:', prompt_id);
 
     // Step 1: Get current version number
     const { data: currentVersion, error: versionError } = await supabase
@@ -221,7 +221,7 @@ router.put('/updatePrompt/:prompt_id', verifyGoogleToken, async (req, res) => {
     if (versionError) throw versionError;
 
     const nextVersion = currentVersion.length > 0 ? currentVersion[0].version_number + 1 : 1;
-	console.log('Next version is :', nextVersion);
+	//console.log('Next version is :', nextVersion);
 
     // Step 2: Create new version in prompt_versions
     const { data: newVersion, error: createError } = await supabase
@@ -241,7 +241,7 @@ router.put('/updatePrompt/:prompt_id', verifyGoogleToken, async (req, res) => {
     if (createError) throw createError;
 
     const newVersionId = newVersion[0].version_id;
-	console.log('New versionID is :', newVersionId);
+	//console.log('New versionID is :', newVersionId);
 
     // Step 3: Update Prompt_Master with new active_version_id
     const { data: updatedPrompt, error: updateError } = await supabase
@@ -255,8 +255,8 @@ router.put('/updatePrompt/:prompt_id', verifyGoogleToken, async (req, res) => {
 
     if (updateError) throw updateError;
 
-    console.log('✅ New version created successfully:', { prompt_id, version: nextVersion });
-	console.log('✅ New version created successfully:', updatedPrompt[0], updatedPrompt[0].active_version_id[0]);
+    //console.log('✅ New version created successfully:', { prompt_id, version: nextVersion });
+	//console.log('✅ New version created successfully:', updatedPrompt[0], updatedPrompt[0].active_version_id[0]);
 
     res.json({
       message: 'New version created successfully',
@@ -281,7 +281,7 @@ router.post('/saveNewPrompt', verifyGoogleToken, async (req, res) => {
   try {
     const { category, title, content, description, created_by, metadata } = req.body;
 
-    console.log('Saving new prompt with versioning:', { title, content, description });
+    //console.log('Saving new prompt with versioning:', { title, content, description });
 
     // Validate required fields
     if (!title || !content) {
@@ -372,7 +372,7 @@ router.post('/saveNewPrompt', verifyGoogleToken, async (req, res) => {
       return res.status(500).json({ error: updateError.message });
     }
 
-    console.log('New prompt saved successfully. Prompt ID:', promptId, 'Version ID:', versionId);
+    //console.log('New prompt saved successfully. Prompt ID:', promptId, 'Version ID:', versionId);
     
     // Get the final combined data
     const { data: finalPromptData, error: finalError } = await supabase
@@ -465,6 +465,7 @@ function generatePromptId(title) {
 }
 
 export default router;
+
 
 
 
