@@ -19,9 +19,11 @@ app.use(limiter);
 
 // CORS — secure allowed origins
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000").split(",").map(o => o.trim());
+console.log("Allowed origins:", allowedOrigins);
 app.use(
   cors({
     origin: (origin, callback) => {
+      console.log(" origins:", origin);
       // allow server-to-server or CLI (no origin)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
@@ -52,6 +54,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log("Allowed origins:", allowedOrigins);
 });
+
 
 
 
